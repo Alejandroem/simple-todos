@@ -1,6 +1,8 @@
 import angular from 'angular';
 import angularMeteor from 'angular-meteor';
 import { Tasks } from '../../api/tasks.js';
+import { Meteor } from 'meteor/meteor';
+
 
 import template from './todosList.html';
 
@@ -9,6 +11,8 @@ class TodosListCtrl {
         $scope.viewModel(this);
 
         this.hideCompleted = false;
+
+        this.subscribe('tasks');
 
         this.helpers({
             tasks() {
@@ -33,32 +37,28 @@ class TodosListCtrl {
                         $ne: true
                     }
                 }).count();
+            },
+            currentUser() {
+                return Meteor.user();
             }
         })
     }
 
     addTask(newTask) {
-        // Insert a task into the collection
-        Tasks.insert({
-            text: newTask,
-            createdAt: new Date
-        });
-
-        // Clear form
+        Meteor.call('tasks.insert', newTask);
         this.newTask = '';
     }
 
     setChecked(task) {
-        // Set the checked property to the opposite of its current value
-        Tasks.update(task._id, {
-            $set: {
-                checked: !task.checked
-            },
-        });
+        Meteor.call('tasks.setChecked', task._id, !task.checked);
     }
 
     removeTask(task) {
-        Tasks.remove(task._id);
+        Meteor.call('tasks.remove', task._id);
+    }
+
+    setPrivate(task) {
+        Meteor.call('tasks.setPrivate', task._id, !task.private);
     }
 }
 
